@@ -44,7 +44,7 @@ SELECT first_name AS Nombre,
 Encuentra el nombre y apellido de los actores que tengan "Gibson" en su apellido*/
 
 SELECT first_name AS Nombre,
-		last_name AS Apellido
+	   last_name AS Apellido
 	FROM actor
     WHERE last_name like "%Gibson%"; 
 
@@ -53,8 +53,8 @@ Encuentra los nombres de los actores que tengan un actor_id entre 10 y 20*/
 -- Between para decirle entre y AND para que sea (y) , quiero los id entre el 10 y el 20
 
 SELECT actor_id,
-		first_name AS Nombre,
-		last_name AS Apellido
+	   first_name AS Nombre,
+	   last_name AS Apellido
 	FROM actor
     WHERE actor_id BETWEEN 10 AND 20; 
 
@@ -62,7 +62,8 @@ SELECT actor_id,
 Encuentra el titulo de las peliculas en la tabla film que no sean ni r ni pg 13 en cuanto a su clasificacion*/
 -- Excluyo con NOT IN
 
-SELECT  rating AS Clasificacion,title AS nombres_de_peliculas
+SELECT  rating AS Clasificacion,
+		title AS nombres_de_peliculas
 	FROM film 
 	WHERE rating NOT IN ("PG-13","R" ); 
 
@@ -97,7 +98,7 @@ SELECT COUNT(rental_id) , -- Query de comprobacion
  SELECT  c.customer_id , 
 		c.first_name,
 		c.last_name,
-        COUNT(r.rental_id) AS total_alquiladas
+	COUNT(r.rental_id) AS total_alquiladas
 FROM customer AS c
 INNER JOIN rental AS r ON c.customer_id = r.customer_id
 GROUP BY c.customer_id,c.first_name,c.last_name;
@@ -191,8 +192,8 @@ SELECT *
 -- Union sencilla de tablas actor con film_actor y film_actor con film 
 
 SELECT a.actor_id ,
-a.first_name ,
-a.last_name
+       a.first_name ,
+       a.last_name
 	FROM actor AS a
 INNER JOIN film_actor AS fa 
 		ON a.actor_id = fa.actor_id;
@@ -233,23 +234,173 @@ Hay algún actor o actriz que no aparezca en ninguna película en la tabla film_
 Realice un LEFT JOIN para mantener la tabla actor , para traer a todos los actores aunque no tengan película, 
 le pedí en el WHERE que me mostrara todos los que fueran nuloS, con IS NULL*/
 
-SELECT *
+SELECT * 
 	FROM actor;
     
 SELECT *
 	FROM film;
 
-SELECT a.first_name,
+SELECT a.first_name, 
 	   a.last_name
 	FROM actor AS a 
     LEFT JOIN film_actor AS fa
 		ON a.actor_id = fa.actor_id
-	WHERE fa.actor_id IS NULL 
+	WHERE fa.actor_id IS NULL;
     
+/* Ejercicio 16
+16. Encuentra el título de todas las películas que fueron lanzadas entre el año 2005 y 2010.*/
+-- USE BETWEEN  para señalar los años que me piden.
+
+SELECT title AS titulo,
+       release_year AS lanzamiento
+	FROM film
+    WHERE release_year BETWEEN 2005 AND 2010;
     
+/* Ejercicio 17
+Encuentra el título de todas las películas que son de la misma categoría que "Family".
+Primero visualice las tablas individuales, despues hice uniones sencillas, con INNER JOIN, ya que solo me interesan los datos con infromacion, no nulos,
+define las columnas y una ves que comprobe que mis tabla de uniones sencillas funcionaban las uni a la query final. 
+Agregue un WHERE para indicarle que solo queria la categoria "family"*/
+
+-- Tablas individuales 
+SELECT category_id,
+	   name
+	FROM category
+    WHERE name = "Family";
+    
+SELECT film_id,
+       title
+	FROM film;
+    
+ SELECT film_id,
+       category_id
+	FROM film_category;
+ 
+ -- Uniones sencillas
+
+SELECT f.film_id,
+       f.title
+	FROM film AS f
+INNER JOIN film_category AS fc 
+		ON f.film_id = fc.film_id;
+
+        
+SELECT fc.film_id,
+		c.name AS nombre_categoria
+	FROM film_category AS fc
+INNER JOIN category AS c
+		ON fc.category_id =c.category_id;
+        
+-- Query final
+
+SELECT title
+	FROM film AS f
+INNER JOIN film_category AS fc 
+		ON f.film_id = fc.film_id
+INNER JOIN category AS c
+		ON fc.category_id =c.category_id
+WHERE c.name ="Family";
+
+/* Ejercicio 18
+ Muestra el nombre y apellido de los actores que aparecen en más de 10 películas.*/
+-- Visualizacion de tablas  individuales
+SELECT first_name,
+	   last_name,
+       actor_id
+	FROM actor;
+    
+SELECT *
+	 FROM film_actor;
+ -- Union de tablas INNER JOIN para unir nombres con film_id
+ 
+SELECT a.first_name,
+	   a.last_name,
+      fa.film_id
+	FROM actor AS a
+INNER JOIN film_actor AS fa
+		ON a.actor_id = fa.actor_id;
+-/*Query final use GROUP BY para agrupar los resultados de cada actor  y 
+HAVING en lugar de WHERE porque hay GROUP BY, y WHERE no deja agregar funciones, 
+en este caso COUNT para contar las pelis de cada grupo*/ 
+
+SELECT a.first_name,
+	   a.last_name,
+	COUNT(FA.film_id) AS total_peliculas
+	FROM actor AS a
+INNER JOIN film_actor AS fa
+		ON a.actor_id = fa.actor_id
+GROUP BY a.actor_id
+HAVING COUNT(fa.film_id) > 10;
+
+/* Ejercicio 19
+Encuentra el título de todas las películas que son "R" y tienen una duración mayor a 2 horas en la
+tabla film.*/
+/* Use la tabla film que es la que tiene rating , nombre de pelis y duracion, 
+le di condicion con WHERE y AND pues me pidieron que se cumplieran las dos condiciones*/
+
+SELECT  rating AS Clasificacion,
+        title AS nombres_de_peliculas,
+        length AS duracion
+	FROM film 
+	WHERE rating = "R" 
+		AND length > 120;
+        
+/* Ejercicio 20
+. Encuentra las categorías de películas que tienen un promedio de duración superior a 120 minutos y
+muestra el nombre de la categoría junto con el promedio de duración.*/
+-- Visualizacion de tablas
+
+SELECT *
+	FROM category;
+   
+    
+SELECT length,
+      film_id,
+      title
+	FROM film;
+    
+Select *
+	FROM film_category;
+    
+-- Uniones simples para hacer el puente entre la tabla film_category, verifique que funcionaran bien y arrojaran datos que necesito.
+    
+SELECT c.category_id,
+       c.name
+	FROM category AS c
+INNER JOIN film_category AS fc
+		ON c.category_id = fc.category_id;
+   
+SELECT fc.film_id,
+       f.length,
+       f.title
+	FROM film_category AS fc
+INNER JOIN film AS f
+		ON fc.film_id = f.film_id;
+ 
+     /* Query final 
+     uni todas las tablas anteriores por medio de INNER JOIN, utilice funcion AVG para sacar promemdio y
+     GROUP BY para agrupar por nombre ,HAVING àra dar el ultimo filtro ya que use GROUP BY.*/
+     
+    
+ SELECT c.name AS nombre_categoria,
+       AVG(f.length) AS promedio_duracion
+	FROM category AS c
+    INNER JOIN film_category AS fc
+		ON c.category_id = fc.category_id
+	INNER JOIN film AS f
+		ON fc.film_id = f.film_id
+    GROUP BY c.name 
+    HAVING AVG(f.length)> 120;
+ 
+
+
+        
+
+        
 
 
 
+        
 
 
 
