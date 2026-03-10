@@ -4,7 +4,7 @@ USE SAKILA;
 selecciona todos los nombres de las peliculas sin que aparezcan duplicados.*/
 -- He usado DISTINCT para eliminar registros duplicados 
 
-SELECT DISTINCT title AS nomnbres_de_peliculas
+SELECT DISTINCT title AS nombres_de_peliculas
 	FROM film;
 
 /* Ejercicio 2
@@ -391,8 +391,180 @@ INNER JOIN film AS f
 		ON fc.film_id = f.film_id
     GROUP BY c.name 
     HAVING AVG(f.length)> 120;
- 
+    
+    /*Ejercicio 21
+    Encuentra los actores que han actuado en al menos 5 películas y muestra el nombre del actor junto
+con la cantidad de películas en las que han actuado.
+El ejercicio es igual que el 18 pero se añade = para que incluya 5 o mas peliculas*/
 
+ SELECT first_name,
+	   last_name,
+       actor_id
+	FROM actor;
+    
+SELECT *
+	 FROM film_actor;
+ -- Union de tablas INNER JOIN para unir nombres con film_id
+ 
+SELECT a.first_name,
+	   a.last_name,
+      fa.film_id
+	FROM actor AS a
+INNER JOIN film_actor AS fa
+		ON a.actor_id = fa.actor_id;
+-/*Query final use GROUP BY para agrupar los resultados de cada actor  y 
+HAVING en lugar de WHERE porque hay GROUP BY, y WHERE no deja agregar funciones, 
+en este caso COUNT para contar las pelis de cada grupo*/ 
+
+SELECT a.first_name,
+	   a.last_name,
+	COUNT(fa.film_id) AS total_peliculas
+	FROM actor AS a
+INNER JOIN film_actor AS fa
+		ON a.actor_id = fa.actor_id
+GROUP BY a.actor_id
+HAVING COUNT(fa.film_id) >= 5;
+
+/* Ejercicio 22
+Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una
+subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las
+películas correspondientes.
+
+-- Por cuestiones de tiempo he decidido hacerlo con INNER JOIN ,
+ me parece un camino mas facil de seguir y codigo mas limpio.*/
+-- Visualización de tablas individuales
+ SELECT film_id,
+        title
+	FROM film
+    LIMIT 5;
+SELECT inventory_id
+       film_id
+	FROM inventory
+    LIMIT 5;
+    
+SELECT rental_id,
+       inventory_id,
+       rental_date,
+       return_date
+	FROM rental
+    LIMIT 5;
+    
+    -- uniones sencillas INNER JOIN dos tablas
+  
+  SELECT f.title,
+         i.inventory_id
+		FROM film AS f
+	INNER JOIN inventory AS I
+			ON f.film_id = i.film_id;
+
+SELECT i.inventory_id,
+	   r.rental_date,
+       r.return_date
+		FROM inventory AS i
+	INNER JOIN rental AS r
+			ON r.inventory_id = i.inventory_id;
+
+
+ SELECT DISTINCT f.title
+	FROM film AS f
+    INNER JOIN inventory AS i
+		ON f.film_id = i.film_id
+	INNER JOIN RENTAL AS r 
+		ON i.inventory_id =r.inventory_id
+	WHERE DATEDIFF(r.return_date , r.rental_date) > 5;
+    
+/*Ejercicio 23
+Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría
+"Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la
+categoría "Horror" y luego exclúyelos de la lista de actores.*/
+-- visualizacion de tablas 
+SELECT actor_id,
+       first_name,
+       last_name 
+	FROM actor;
+    
+ SELECT actor_id,
+       film_id
+	FROM film_actor;  
+    
+ SELECT category_id,
+       film_id
+	FROM film_category; 
+  
+  SELECT category_id,
+		name
+	FROM category;  
+    
+    SELECT title,
+           film_id
+	FROM film; 
+-- INNER JOIN  uniones sencillas para ver que funcionan 
+ SELECT a.first_name,
+       a.last_name
+	FROM actor AS a
+INNER JOIN film_actor AS fa 
+		ON a.actor_id = fa.actor_id;
+        
+SELECT fc.film_id,
+		c.name AS nombre_categoria
+	FROM film_category AS fc
+INNER JOIN category AS c
+		ON fc.category_id =c.category_id;
+        
+SELECT f.title, f.film_id
+	FROM film AS f
+INNER JOIN film_actor AS fa
+      ON f.film_id = fa.film_id;
+
+-- Query final
+/*Lo de adentro ( subconsulta)busca los id de actores que si han hecho Horror.
+El NOT in  los quita y nos da el resto de actores.*/
+
+ 
+ SELECT first_name AS nombre,
+        last_name AS apellido
+	FROM actor 
+WHERE actor_id NOT IN (
+SELECT fa.actor_id
+	FROM film_actor as fa
+INNER JOIN film_category AS fc 
+		ON fa.film_id = fc.film_id
+INNER JOIN category AS c
+		ON fc.category_id = c.category_id
+WHERE c.name = "Horror"
+);
+
+
+/* Ejercicio 24
+Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en
+la tabla film.*/
+-- Visualización de tablas
+
+SELECT category_id,
+       name
+	FROM category;
+    
+SELECT film_id,
+       category_id
+	FROM film_category;
+
+-- Union sencilla de tablas (2 tablas)
+
+SELECT c.name,
+       fc.film_id
+	FROM category AS c
+INNER JOIN film_category AS fc
+	ON c.category_id = fc.category_id;
+
+/* Query final
+INNER JOIN union de tablas, grupo por nombre utilizo la funcion COUNT  para contar total peliculas por categoria*/
+SELECT 
+       c.name AS nombre_categoria,
+       COUNT(fc.film_id) AS total_peliculas
+	FROM category AS c
+INNER JOIN film_category AS fc 
+		ON c.category_id = fc.category_id
+	GROUP BY c.name;
 
         
 
