@@ -80,11 +80,13 @@ Encuentra la cantidad total de peliculas alquiladas por cada cliente y muestra e
 su nombre y apellido junto la cantidad de peliculas alquiladas*/
 -- Customer y rental se unen por medio de customer_id, saque la informacion de ambas tablas por separado para comprobar que la info que necesito estaba ahi.
 
-SELECT customer_id ,first_name,last_name --  Query de comprobacion
+SELECT  customer_id,
+		first_name,
+		last_name --  Query de comprobacion
 	FROM customer;
     
 SELECT COUNT(rental_id) , -- Query de comprobacion
-		customer_id
+			customer_id
 	FROM rental
     GROUP BY customer_id;
 
@@ -92,12 +94,197 @@ SELECT COUNT(rental_id) , -- Query de comprobacion
  Uni las tablas con un INNER JOIN por medio de customer_id y al tener una funcion en este caso COUNT la agrupe en customer_id
  en el SELECT defini las columnas que me pidieron.*/
  
- SELECT  c.customer_id ,
+ SELECT  c.customer_id , 
 		c.first_name,
 		c.last_name,
         COUNT(r.rental_id) AS total_alquiladas
 FROM customer AS c
 INNER JOIN rental AS r ON c.customer_id = r.customer_id
 GROUP BY c.customer_id,c.first_name,c.last_name;
+
+/* Ejercicio 11
+Encuentra la cantidad total de peliculas alquiladas por categoroia y muestra el nombre de la categoria junto con el recuento de alquileres.*/
+/* Primero revise cada tabla por separado que descubri a traves del schema, verifique que fueran las correctas. saque 4 tablas*/
+SELECT * 
+	FROM category
+    LIMIT 5;
+    
+SELECT * 
+	FROM film_category
+	LIMIT 5;
+	
+SELECT * 
+	FROM inventory
+	LIMIT 5;
+
+SELECT * 
+	FROM rental
+	LIMIT 5;
+ /* Fui uniendo de dos en dos para verificar que los INNER JOIN funcionaban. 
+ primero-category – film_category, Segundo film_category -inventory  y por ultimo inventory con rental. */
+
+SELECT 
+		c.name AS categoria,
+        fc.film_id
+	FROM category AS c
+INNER JOIN film_category AS fc 
+		ON c.category_id = fc.category_id;
+        
+SELECT 
+		fc.category_id,
+        fc.film_id,
+        i.inventory_id
+	FROM film_category AS fc
+INNER JOIN inventory AS i
+		ON fc.film_id = i.film_id;
+        
+SELECT 
+		r.rental_id,
+        r.inventory_id,
+        i.inventory_id
+	FROM inventory AS i
+INNER JOIN rental AS r
+		ON i.inventory_id = r.inventory_id;
+ 
+	-- QUERY FINAL
+/*1.Utilice INNER JOIN para traer solo las filas que coinciden en las 4 tablas (así fui conectando datos).
+  2. Recicle los JOIN de mis pruebas anteriores para formar la línea completa.
+  3.Use la función COUNT para contar alquileres y GROUP BY para agrupar por categoría, 
+ya que las funciones siempre requieren agrupar los resultados. */
+
+ SELECT  c.name AS categoria ,
+        COUNT(r.rental_id) AS total_alquiladas
+FROM category AS c
+INNER JOIN film_category AS fc 
+		ON c.category_id = fc.category_id
+INNER JOIN inventory AS i
+		ON fc.film_id = i.film_id
+ INNER JOIN rental AS r
+		ON i.inventory_id = r.inventory_id 
+GROUP BY c.name;
+
+/* Ejercicio 12
+Encuentra el promedio de duracion de las peliculas para cada clasificación de la tabla film
+ y muestra la clasificacion junto con el promedio de duracion.*/
+ 
+  SELECT rating AS clasificacion, 
+		AVG (length) AS promedio_duracion -- sacamos promedio 
+	FROM film 
+	GROUP BY rating; 
+    
+/* Ejercicio 13
+Encuentra nombre y apellido de los actores que aparecen en la pelicula con title "Indian Love"*/
+-- Comprobacion de tablas
+
+SELECT *
+	FROM film
+	LIMIT 5;
+    
+SELECT *
+	FROM actor
+	LIMIT 5;
+ 
+ SELECT *
+	FROM film_actor
+	LIMIT 5;
+    
+-- Union sencilla de tablas actor con film_actor y film_actor con film 
+
+SELECT a.actor_id ,
+a.first_name ,
+a.last_name
+	FROM actor AS a
+INNER JOIN film_actor AS fa 
+		ON a.actor_id = fa.actor_id;
+    
+SELECT 
+		fa.actor_id,
+        fa.film_id,
+        f.title
+	FROM film_actor AS fa
+    INNER JOIN film AS f
+		ON fa.film_id = f.film_id;
+/* Query final
+Uni las tablas que saque previamente, utilice un lower en el were para que no tome en cuenta como esta escrito indian love 
+Utilice  = porque quiero que sea la peli exacta indian love y no que contenga alguna de esas palabras , quiero ese titulo igual */  
+
+SELECT a.first_name,
+       a.last_name
+	FROM actor AS a
+INNER JOIN film_actor AS ac 
+		ON a.actor_id = ac.actor_id
+INNER JOIN film AS f
+		ON ac.film_id = f.film_id
+WHERE LOWER(f.title) = "Indian Love";
+
+/* Ejercicio 14 
+Muestra el titulo de todas las peliculas que contengan la palabra "dog o "cat" en su descripción
+
+Utilice like porque busco palabras que se encuentren en el texto de la columnna descripcion, 
+los simbolos de % son para indicarle que no importa que hay antes o despues pero si hay la palabra dog o cat lo muestre*/
+
+SELECT title, description 
+	FROM film 
+	WHERE description LIKE "%dog%"
+		OR description LIKE "%cat%";
+        
+/* Ejercicio 15
+Hay algún actor o actriz que no aparezca en ninguna película en la tabla film_actor.
+Realice un LEFT JOIN para mantener la tabla actor , para traer a todos los actores aunque no tengan película, 
+le pedí en el WHERE que me mostrara todos los que fueran nuloS, con IS NULL*/
+
+SELECT *
+	FROM actor;
+    
+SELECT *
+	FROM film;
+
+SELECT a.first_name,
+	   a.last_name
+	FROM actor AS a 
+    LEFT JOIN film_actor AS fa
+		ON a.actor_id = fa.actor_id
+	WHERE fa.actor_id IS NULL 
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
